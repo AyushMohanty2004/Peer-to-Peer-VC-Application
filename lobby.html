@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EdGar - Educational Video Call</title>
+    <link rel="stylesheet" href="lobby.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>EdGar</h1>
+            <p>Educational Video Call</p>
+        </div>
+        <form id="join-form">
+            <p class="instructions">Enter a unique room ID to create your room or enter an existing one to join a room</p>
+            <input type="text" name="invite_link" placeholder="Enter room ID" required/>
+            <input type="submit" value="Join Room"/>
+        </form>
+    </div>
+    <script>
+        let form = document.getElementById('join-form');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let inviteCode = e.target.invite_link.value;
+            window.location = `index.html?room=${inviteCode}`;
+        });
+    </script>
+</body>
+</html>
