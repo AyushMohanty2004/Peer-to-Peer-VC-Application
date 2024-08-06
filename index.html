@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PeerChat</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div id="videos">
+        <video class="video-player" id="User-1" autoplay playsinline></video>
+        <video class="video-player" id="User-2" autoplay playsinline></video>
+    </div>
+    <div id="controls">
+        <div class="control-container" id="camera-btn">
+            <img src="icons/camera.png" alt="Toggle Camera">
+        </div>
+        <div class="control-container" id="mic-btn">
+            <img src="icons/mic.png" alt="Toggle Microphone">
+        </div>
+        <a href="lobby.html">
+            <div class="control-container" id="leave-btn">
+                <img src="icons/phone.png" alt="Leave Call">
+            </div>
+        </a>
+    </div>
+    <script src="agora-rtm-sdk-1.5.1.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
