@@ -5,7 +5,51 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>EdGar - Educational Video Call</title>
-    <link rel="stylesheet" href="lobby.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        input {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .toggle-form {
+            margin-top: 1rem;
+            color: #666;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -13,18 +57,70 @@
             <h1>EdGar</h1>
             <p>Educational Video Call</p>
         </div>
-        <form id="join-form">
-            <p class="instructions">Enter a unique room ID to create your room or enter an existing one to join a room</p>
-            <input type="text" name="invite_link" placeholder="Enter room ID" required/>
-            <input type="submit" value="Join Room"/>
+        <form id="login-form">
+            <input type="text" name="username" placeholder="Username" required/>
+            <input type="password" name="password" placeholder="Password" required/>
+            <input type="submit" value="Log In"/>
         </form>
+        <form id="signup-form" style="display: none;">
+            <input type="text" name="new-username" placeholder="Choose a username" required/>
+            <input type="password" name="new-password" placeholder="Choose a password" required/>
+            <input type="password" name="confirm-password" placeholder="Confirm password" required/>
+            <input type="submit" value="Sign Up"/>
+        </form>
+        <p class="toggle-form" id="toggle-form">Don't have an account? Sign up</p>
     </div>
     <script>
-        let form = document.getElementById('join-form');
-        form.addEventListener('submit', (e) => {
+        let loginForm = document.getElementById('login-form');
+        let signupForm = document.getElementById('signup-form');
+        let toggleForm = document.getElementById('toggle-form');
+        let users = {};
+
+        toggleForm.addEventListener('click', () => {
+            if (loginForm.style.display === 'none') {
+                loginForm.style.display = 'flex';
+                signupForm.style.display = 'none';
+                toggleForm.textContent = "Don't have an account? Sign up";
+            } else {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'flex';
+                toggleForm.textContent = "Already have an account? Log in";
+            }
+        });
+
+        signupForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            let inviteCode = e.target.invite_link.value;
-            window.location = `index.html?room=${inviteCode}`;
+            let username = e.target['new-username'].value;
+            let password = e.target['new-password'].value;
+            let confirmPassword = e.target['confirm-password'].value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords don't match");
+                return;
+            }
+
+            if (users[username]) {
+                alert("Username already exists");
+                return;
+            }
+
+            users[username] = password;
+            alert("Sign up successful! Please log in.");
+            toggleForm.click();
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let username = e.target.username.value;
+            let password = e.target.password.value;
+
+            if (!users[username] || users[username] !== password) {
+                alert("Invalid username or password");
+                return;
+            }
+
+            let roomId = Math.random().toString(36).substring(7);
+            window.location = `index.html?room=${roomId}&user=${username}`;
         });
     </script>
 </body>
