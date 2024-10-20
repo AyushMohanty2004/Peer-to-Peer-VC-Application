@@ -49,6 +49,12 @@
             color: #666;
             cursor: pointer;
         }
+        .remember-me {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -60,6 +66,10 @@
         <form id="login-form">
             <input type="text" name="username" placeholder="Username" required/>
             <input type="password" name="password" placeholder="Password" required/>
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Remember me</label>
+            </div>
             <input type="submit" value="Log In"/>
         </form>
         <form id="signup-form" style="display: none;">
@@ -74,7 +84,17 @@
         let loginForm = document.getElementById('login-form');
         let signupForm = document.getElementById('signup-form');
         let toggleForm = document.getElementById('toggle-form');
-        let users = {};
+        let users = JSON.parse(localStorage.getItem('users')) || {};
+
+        // Check for remembered credentials
+        window.addEventListener('load', () => {
+            let rememberedUser = JSON.parse(localStorage.getItem('rememberedUser'));
+            if (rememberedUser) {
+                loginForm.username.value = rememberedUser.username;
+                loginForm.password.value = rememberedUser.password;
+                loginForm.remember.checked = true;
+            }
+        });
 
         toggleForm.addEventListener('click', () => {
             if (loginForm.style.display === 'none') {
@@ -105,6 +125,7 @@
             }
 
             users[username] = password;
+            localStorage.setItem('users', JSON.stringify(users));
             alert("Sign up successful! Please log in.");
             toggleForm.click();
         });
@@ -113,10 +134,17 @@
             e.preventDefault();
             let username = e.target.username.value;
             let password = e.target.password.value;
+            let remember = e.target.remember.checked;
 
             if (!users[username] || users[username] !== password) {
                 alert("Invalid username or password");
                 return;
+            }
+
+            if (remember) {
+                localStorage.setItem('rememberedUser', JSON.stringify({username, password}));
+            } else {
+                localStorage.removeItem('rememberedUser');
             }
 
             let roomId = Math.random().toString(36).substring(7);
