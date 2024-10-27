@@ -6,54 +6,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>EdGar - Educational Video Call</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
         .container {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
         }
-        h1 {
-            color: #333;
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
         }
         form {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-            margin-top: 1rem;
+            gap: 15px;
         }
         input {
-            padding: 0.5rem;
-            border: 1px solid #ccc;
+            padding: 10px;
+            border: 1px solid #ddd;
             border-radius: 4px;
         }
         input[type="submit"] {
-            background-color: #4CAF50;
+            background-color: #007bff;
             color: white;
+            border: none;
             cursor: pointer;
         }
         input[type="submit"]:hover {
-            background-color: #45a049;
+            background-color: #0056b3;
         }
-        .toggle-form {
-            margin-top: 1rem;
-            color: #666;
-            cursor: pointer;
+        .error {
+            color: red;
+            margin-top: 5px;
         }
-        .remember-me {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+        .hidden {
+            display: none;
         }
     </style>
 </head>
@@ -63,93 +49,136 @@
             <h1>EdGar</h1>
             <p>Educational Video Call</p>
         </div>
+
+        <!-- Login Form -->
         <form id="login-form">
+            <h2>Login</h2>
             <input type="text" name="username" placeholder="Username" required/>
             <input type="password" name="password" placeholder="Password" required/>
-            <div class="remember-me">
-                <input type="checkbox" id="remember" name="remember">
-                <label for="remember">Remember me</label>
-            </div>
-            <input type="submit" value="Log In"/>
+            <input type="submit" value="Login"/>
+            <p>Don't have an account? <a href="#" id="show-register">Register here</a></p>
+            <p class="error hidden" id="login-error"></p>
         </form>
-        <form id="signup-form" style="display: none;">
-            <input type="text" name="new-username" placeholder="Choose a username" required/>
-            <input type="password" name="new-password" placeholder="Choose a password" required/>
-            <input type="password" name="confirm-password" placeholder="Confirm password" required/>
-            <input type="submit" value="Sign Up"/>
+
+        <!-- Register Form -->
+        <form id="register-form" class="hidden">
+            <h2>Register</h2>
+            <input type="text" name="username" placeholder="Username" required/>
+            <input type="password" name="password" placeholder="Password" required/>
+            <input type="password" name="confirm-password" placeholder="Confirm Password" required/>
+            <input type="submit" value="Register"/>
+            <p>Already have an account? <a href="#" id="show-login">Login here</a></p>
+            <p class="error hidden" id="register-error"></p>
         </form>
-        <p class="toggle-form" id="toggle-form">Don't have an account? Sign up</p>
+
+        <!-- Room Join Form -->
+        <form id="join-form" class="hidden">
+            <h2>Join Room</h2>
+            <p class="instructions">Enter a unique room ID to create your room or enter an existing one to join a room</p>
+            <input type="text" name="invite_link" placeholder="Enter room ID" required/>
+            <input type="submit" value="Join Room"/>
+            <button type="button" id="logout-btn">Logout</button>
+        </form>
     </div>
+
     <script>
-        let loginForm = document.getElementById('login-form');
-        let signupForm = document.getElementById('signup-form');
-        let toggleForm = document.getElementById('toggle-form');
-        let users = JSON.parse(localStorage.getItem('users')) || {};
+        // DOM Elements
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const joinForm = document.getElementById('join-form');
+        const showRegisterLink = document.getElementById('show-register');
+        const showLoginLink = document.getElementById('show-login');
+        const logoutBtn = document.getElementById('logout-btn');
+        const loginError = document.getElementById('login-error');
+        const registerError = document.getElementById('register-error');
 
-        // Check for remembered credentials
-        window.addEventListener('load', () => {
-            let rememberedUser = JSON.parse(localStorage.getItem('rememberedUser'));
-            if (rememberedUser) {
-                loginForm.username.value = rememberedUser.username;
-                loginForm.password.value = rememberedUser.password;
-                loginForm.remember.checked = true;
+        // Check if user is already logged in
+        function checkAuth() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                loginForm.classList.add('hidden');
+                registerForm.classList.add('hidden');
+                joinForm.classList.remove('hidden');
             }
-        });
+        }
 
-        toggleForm.addEventListener('click', () => {
-            if (loginForm.style.display === 'none') {
-                loginForm.style.display = 'flex';
-                signupForm.style.display = 'none';
-                toggleForm.textContent = "Don't have an account? Sign up";
-            } else {
-                loginForm.style.display = 'none';
-                signupForm.style.display = 'flex';
-                toggleForm.textContent = "Already have an account? Log in";
-            }
-        });
-
-        signupForm.addEventListener('submit', (e) => {
+        // Show/Hide forms
+        showRegisterLink.addEventListener('click', (e) => {
             e.preventDefault();
-            let username = e.target['new-username'].value;
-            let password = e.target['new-password'].value;
-            let confirmPassword = e.target['confirm-password'].value;
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+        });
+
+        showLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+
+        // Handle Registration
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = e.target.username.value;
+            const password = e.target.password.value;
+            const confirmPassword = e.target['confirm-password'].value;
 
             if (password !== confirmPassword) {
-                alert("Passwords don't match");
+                registerError.textContent = "Passwords don't match";
+                registerError.classList.remove('hidden');
                 return;
             }
 
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            
             if (users[username]) {
-                alert("Username already exists");
+                registerError.textContent = "Username already exists";
+                registerError.classList.remove('hidden');
                 return;
             }
 
             users[username] = password;
             localStorage.setItem('users', JSON.stringify(users));
-            alert("Sign up successful! Please log in.");
-            toggleForm.click();
+            localStorage.setItem('currentUser', username);
+            
+            registerForm.classList.add('hidden');
+            joinForm.classList.remove('hidden');
         });
 
+        // Handle Login
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            let username = e.target.username.value;
-            let password = e.target.password.value;
-            let remember = e.target.remember.checked;
+            const username = e.target.username.value;
+            const password = e.target.password.value;
 
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            
             if (!users[username] || users[username] !== password) {
-                alert("Invalid username or password");
+                loginError.textContent = "Invalid username or password";
+                loginError.classList.remove('hidden');
                 return;
             }
 
-            if (remember) {
-                localStorage.setItem('rememberedUser', JSON.stringify({username, password}));
-            } else {
-                localStorage.removeItem('rememberedUser');
-            }
-
-            let roomId = Math.random().toString(36).substring(7);
-            window.location = `index.html?room=${roomId}&user=${username}`;
+            localStorage.setItem('currentUser', username);
+            loginForm.classList.add('hidden');
+            joinForm.classList.remove('hidden');
         });
+
+        // Handle Room Join
+        joinForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let inviteCode = e.target.invite_link.value;
+            window.location = `index.html?room=${inviteCode}`;
+        });
+
+        // Handle Logout
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('currentUser');
+            joinForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+
+        // Check authentication status on page load
+        checkAuth();
     </script>
 </body>
 </html>
