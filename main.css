@@ -172,3 +172,133 @@ body {
     border-radius: 4px;
     z-index: 1000;
 }
+/* Add these styles to your main.css file */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 90%;
+    width: 400px;
+    z-index: 1001;
+    animation: slideIn 0.3s ease;
+}
+
+.modal-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.user-icon {
+    width: 64px;
+    height: 64px;
+    background-color: rgb(179, 102, 249, 0.2);
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-icon svg {
+    width: 32px;
+    height: 32px;
+    color: rgb(179, 102, 249);
+}
+
+.modal-content {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.username {
+    color: rgb(179, 102, 249);
+    font-weight: 600;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.modal-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    flex: 1;
+    transition: background-color 0.2s ease;
+}
+
+.accept-button {
+    background-color: rgb(179, 102, 249);
+    color: white;
+}
+
+.accept-button:hover {
+    background-color: rgb(159, 82, 229);
+}
+
+.reject-button {
+    background-color: rgb(255, 80, 80);
+    color: white;
+}
+
+.reject-button:hover {
+    background-color: rgb(235, 60, 60);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translate(-50%, -60%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+}
+
+#waiting-message {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    z-index: 1000;
+}
