@@ -4,36 +4,41 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>EdGar - Video Call</title>
+    <title>PeerChat</title>
     <link rel="stylesheet" href="main.css">
 </head>
 <body>
     <div id="videos">
-        <div class="video-container">
-            <video class="video-player" id="User-1" autoplay playsinline></video>
-            <div class="username-label" id="local-user-label"></div>
-            <div class="host-badge" id="host-badge" style="display: none;">Host</div>
-        </div>
-        <div class="video-container">
-            <video class="video-player" id="User-2" autoplay playsinline></video>
-            <div class="username-label" id="remote-user-label"></div>
-        </div>
+        <video class="video-player" id="User-1" autoplay playsinline></video>
+        <video class="video-player" id="User-2" autoplay playsinline></video>
     </div>
-    
+
     <!-- Join Request Modal -->
-    <div id="join-request-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3>Join Request</h3>
-            <p id="join-request-text"></p>
+    <div id="join-request-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="user-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                        </path>
+                    </svg>
+                </div>
+                <h2 class="modal-title">Join Request</h2>
+            </div>
+            <div class="modal-content">
+                <p><span id="requesting-username" class="username"></span> would like to join the call</p>
+            </div>
             <div class="modal-buttons">
-                <button id="accept-btn">Accept</button>
-                <button id="reject-btn">Reject</button>
+                <button id="reject-btn" class="modal-button reject-button">Decline</button>
+                <button id="accept-btn" class="modal-button accept-button">Accept</button>
             </div>
         </div>
     </div>
 
-    <div id="waiting-message" style="display: none;">
-        Waiting for host approval...
+    <!-- Waiting Message -->
+    <div id="waiting-message">
+        <h3>Waiting for host approval...</h3>
     </div>
 
     <div id="controls">
@@ -49,6 +54,7 @@
             </div>
         </a>
     </div>
+
     <script src="agora-rtm-sdk-1.5.1.js"></script>
     <script src="main.js"></script>
 </body>
