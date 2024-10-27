@@ -8,11 +8,6 @@ let channel;
 let queryString = window.location.search;
 let urlParams = new URLSearchParams(queryString);
 let roomId = urlParams.get('room');
-let username = urlParams.get('username') || 'Anonymous';
-
-let isHost = false;
-let isWaitingForApproval = false;
-let members = {};
 
 if(!roomId){
     window.location = 'lobby.html';
@@ -36,18 +31,6 @@ let init = async () => {
    
     channel = client.createChannel(roomId);
     await channel.join();
-
-    const memberCount = await channel.getMembers();
-    isHost = memberCount.length === 1;
-    
-    if (isHost) {
-        document.getElementById('host-badge').style.display = 'block';
-    } else {
-        await requestToJoin();
-    }
-
-    document.getElementById('local-user-label').textContent = username;
-    
     channel.on('MemberJoined', handleUserJoined);
     channel.on('MemberLeft', handleUserLeft);
     client.on('MessageFromPeer', handleMessageFromPeer);
@@ -56,105 +39,15 @@ let init = async () => {
     document.getElementById('User-1').srcObject = localStream;
 };
 
-let showModal = (username) => {
-    const modal = document.getElementById('join-request-modal');
-    const usernameSpan = document.getElementById('requesting-username');
-    usernameSpan.textContent = username;
-    modal.style.display = 'block';
-};
-
-let hideModal = () => {
-    const modal = document.getElementById('join-request-modal');
-    modal.style.display = 'none';
-};
-
-let showWaitingMessage = () => {
-    const waitingMessage = document.getElementById('waiting-message');
-    waitingMessage.style.display = 'block';
-};
-
-let hideWaitingMessage = () => {
-    const waitingMessage = document.getElementById('waiting-message');
-    waitingMessage.style.display = 'none';
-};
-
-let requestToJoin = async () => {
-    if (!isHost) {
-        showWaitingMessage();
-        isWaitingForApproval = true;
-        
-        const members = await channel.getMembers();
-        const hostId = members[0];
-        
-        client.sendMessageToPeer({
-            text: JSON.stringify({
-                type: 'join-request',
-                username: username
-            })
-        }, hostId);
-    }
-};
+let handleUserLeft = (memberId) => {
+    document.getElementById('User-2').style.display = 'none';
+    document.getElementById('User-1').classList.remove('smallframe');
+}
 
 let handleMessageFromPeer = async (message, memberId) => {
     message = JSON.parse(message.text);
     
-    if (message.type === 'join-request' && isHost) {
-        showModal(message.username);
-        
-        members[memberId] = {
-            username: message.username,
-            pending: true
-        };
-
-        const acceptButton = document.getElementById('accept-btn');
-        const rejectButton = document.getElementById('reject-btn');
-
-        const handleAccept = () => {
-            client.sendMessageToPeer({
-                text: JSON.stringify({
-                    type: 'join-approved',
-                    username: username
-                })
-            }, memberId);
-            hideModal();
-            createOffer(memberId);
-            // Remove event listeners
-            acceptButton.removeEventListener('click', handleAccept);
-            rejectButton.removeEventListener('click', handleReject);
-        };
-
-        const handleReject = () => {
-            client.sendMessageToPeer({
-                text: JSON.stringify({
-                    type: 'join-rejected'
-                })
-            }, memberId);
-            hideModal();
-            // Remove event listeners
-            acceptButton.removeEventListener('click', handleAccept);
-            rejectButton.removeEventListener('click', handleReject);
-        };
-
-        // Add event listeners
-        acceptButton.addEventListener('click', handleAccept);
-        rejectButton.addEventListener('click', handleReject);
-    }
-    
-    if (message.type === 'join-approved') {
-        hideWaitingMessage();
-        isWaitingForApproval = false;
-        document.getElementById('remote-user-label').textContent = message.username;
-    }
-    
-    if (message.type === 'join-rejected') {
-        hideWaitingMessage();
-        setTimeout(() => {
-            alert('Your join request was rejected');
-            window.location = 'lobby.html';
-        }, 300);
-    }
-    
-    if (message.type === 'offer' && !isWaitingForApproval) {
+    if (message.type === 'offer') {
         createAnswer(memberId, message.offer);
     }
    
@@ -169,22 +62,11 @@ let handleMessageFromPeer = async (message, memberId) => {
     }
 };
 
-
 let handleUserJoined = async (memberId) => {
     console.log('A new user joined the channel:', memberId);
-    if (isHost && !members[memberId]?.pending) {
-        createOffer(memberId);
-    }
+    createOffer(memberId);
 };
 
-let handleUserLeft = (memberId) => {
-    document.getElementById('User-2').style.display = 'none';
-    document.getElementById('User-1').classList.remove('smallframe');
-    document.getElementById('remote-user-label').textContent = '';
-    delete members[memberId];
-}
-
-// Rest of your existing functions remain the same
 let createPeerConnection = async (memberId) => {
     peerConnection = new RTCPeerConnection(servers);
 
@@ -219,7 +101,6 @@ let createPeerConnection = async (memberId) => {
     };
 };
 
-// Your existing functions remain the same
 let createOffer = async (memberId) => {
     await createPeerConnection(memberId);
    
