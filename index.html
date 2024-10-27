@@ -4,14 +4,38 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PeerChat</title>
+    <title>EdGar - Video Call</title>
     <link rel="stylesheet" href="main.css">
 </head>
 <body>
     <div id="videos">
-        <video class="video-player" id="User-1" autoplay playsinline></video>
-        <video class="video-player" id="User-2" autoplay playsinline></video>
+        <div class="video-container">
+            <video class="video-player" id="User-1" autoplay playsinline></video>
+            <div class="username-label" id="local-user-label"></div>
+            <div class="host-badge" id="host-badge" style="display: none;">Host</div>
+        </div>
+        <div class="video-container">
+            <video class="video-player" id="User-2" autoplay playsinline></video>
+            <div class="username-label" id="remote-user-label"></div>
+        </div>
     </div>
+    
+    <!-- Join Request Modal -->
+    <div id="join-request-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Join Request</h3>
+            <p id="join-request-text"></p>
+            <div class="modal-buttons">
+                <button id="accept-btn">Accept</button>
+                <button id="reject-btn">Reject</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="waiting-message" style="display: none;">
+        Waiting for host approval...
+    </div>
+
     <div id="controls">
         <div class="control-container" id="camera-btn">
             <img src="icons/camera.png" alt="Toggle Camera">
