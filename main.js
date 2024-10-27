@@ -8,6 +8,11 @@ let channel;
 let queryString = window.location.search;
 let urlParams = new URLSearchParams(queryString);
 let roomId = urlParams.get('room');
+let username = urlParams.get('username') || 'Anonymous';
+
+let isHost = false;
+let isWaitingForApproval = false;
+let members = {};
 
 if(!roomId){
     window.location = 'lobby.html';
@@ -31,6 +36,21 @@ let init = async () => {
    
     channel = client.createChannel(roomId);
     await channel.join();
+
+    // Get channel member count to determine if user is host
+    const memberCount = await channel.getMembers();
+    isHost = memberCount.length === 1;
+    
+    if (isHost) {
+        document.getElementById('host-badge').style.display = 'block';
+    } else {
+        // If not host, send join request
+        await requestToJoin();
+    }
+
+    // Display local username
+    document.getElementById('local-user-label').textContent = username;
+    
     channel.on('MemberJoined', handleUserJoined);
     channel.on('MemberLeft', handleUserLeft);
     client.on('MessageFromPeer', handleMessageFromPeer);
@@ -39,15 +59,75 @@ let init = async () => {
     document.getElementById('User-1').srcObject = localStream;
 };
 
-let handleUserLeft = (memberId) => {
-    document.getElementById('User-2').style.display = 'none';
-    document.getElementById('User-1').classList.remove('smallframe');
-}
+let requestToJoin = async () => {
+    if (!isHost) {
+        document.getElementById('waiting-message').style.display = 'block';
+        isWaitingForApproval = true;
+        
+        // Send join request to host
+        const members = await channel.getMembers();
+        const hostId = members[0]; // First member is host
+        
+        client.sendMessageToPeer({
+            text: JSON.stringify({
+                type: 'join-request',
+                username: username
+            })
+        }, hostId);
+    }
+};
 
 let handleMessageFromPeer = async (message, memberId) => {
     message = JSON.parse(message.text);
     
-    if (message.type === 'offer') {
+    if (message.type === 'join-request' && isHost) {
+        // Show join request modal to host
+        document.getElementById('join-request-modal').style.display = 'block';
+        document.getElementById('join-request-text').textContent = 
+            `${message.username} wants to join the call`;
+        
+        // Store requesting user info
+        members[memberId] = {
+            username: message.username,
+            pending: true
+        };
+
+        // Handle accept button
+        document.getElementById('accept-btn').onclick = () => {
+            client.sendMessageToPeer({
+                text: JSON.stringify({
+                    type: 'join-approved',
+                    username: username // Send host's username
+                })
+            }, memberId);
+            document.getElementById('join-request-modal').style.display = 'none';
+            createOffer(memberId);
+        };
+
+        // Handle reject button
+        document.getElementById('reject-btn').onclick = () => {
+            client.sendMessageToPeer({
+                text: JSON.stringify({
+                    type: 'join-rejected'
+                })
+            }, memberId);
+            document.getElementById('join-request-modal').style.display = 'none';
+        };
+    }
+    
+    if (message.type === 'join-approved') {
+        document.getElementById('waiting-message').style.display = 'none';
+        isWaitingForApproval = false;
+        // Display remote username
+        document.getElementById('remote-user-label').textContent = message.username;
+    }
+    
+    if (message.type === 'join-rejected') {
+        alert('Your join request was rejected');
+        window.location = 'lobby.html';
+    }
+    
+    if (message.type === 'offer' && !isWaitingForApproval) {
         createAnswer(memberId, message.offer);
     }
    
@@ -64,9 +144,19 @@ let handleMessageFromPeer = async (message, memberId) => {
 
 let handleUserJoined = async (memberId) => {
     console.log('A new user joined the channel:', memberId);
-    createOffer(memberId);
+    if (isHost && !members[memberId]?.pending) {
+        createOffer(memberId);
+    }
 };
 
+let handleUserLeft = (memberId) => {
+    document.getElementById('User-2').style.display = 'none';
+    document.getElementById('User-1').classList.remove('smallframe');
+    document.getElementById('remote-user-label').textContent = '';
+    delete members[memberId];
+}
+
+// Rest of your existing functions remain the same
 let createPeerConnection = async (memberId) => {
     peerConnection = new RTCPeerConnection(servers);
 
@@ -101,6 +191,7 @@ let createPeerConnection = async (memberId) => {
     };
 };
 
+// Your existing functions remain the same
 let createOffer = async (memberId) => {
     await createPeerConnection(memberId);
    
